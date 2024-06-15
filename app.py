@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, render_template
+from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 import threading
@@ -12,6 +13,7 @@ app = Flask(__name__)
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
+
 # Configure the database URI
 DATABASE_USER = os.environ.get("POSTGRES_USER")
 DATABASE_PASSWORD = os.environ.get("POSTGRES_PASSWORD")
@@ -22,6 +24,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize the database
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # Define the model for daily counts
 class TomatoCount(db.Model):
@@ -78,6 +81,11 @@ def reset_counters():
             
             # Sleep for a short period to reduce CPU usage
             time.sleep(5)
+
+@app.before_first_request
+def setup_database():
+    from flask_migrate import upgrade
+    upgrade()
 
 @app.route('/')
 def index():
