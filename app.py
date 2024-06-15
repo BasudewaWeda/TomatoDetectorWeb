@@ -129,7 +129,7 @@ def update_counter():
     elif detection_result['type'] == 'rotten':
         counters['rotten'] += 1
 
-    reset_counters()
+    # reset_counters()
 
     return jsonify(success=True)
 
