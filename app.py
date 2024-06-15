@@ -5,6 +5,7 @@ import threading
 import time
 import pytz
 import logging
+import os
 
 app = Flask(__name__)
 
@@ -12,7 +13,7 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 # Configure the database URI
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tomato_counts.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize the database
