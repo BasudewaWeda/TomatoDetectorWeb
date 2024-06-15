@@ -135,8 +135,6 @@
           // Check if chart instance exists (initial render)
           if (typeof chart !== "undefined") {
             chart.data.datasets[0].data = [data.fresh, data.rotten]; // Update data
-            console.log(data.fresh);
-            console.log(data.rotten);
             chart.type = "bar"; // Change chart type to 'bar'
             chart.update(); // Call update method to reflect changes
           } else {

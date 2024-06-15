@@ -79,36 +79,6 @@ def reset_counters():
     
     time.sleep(5)
 
-            # now = datetime.now(local_tz)
-            # logging.info(f"Current date: {now.date()}")
-            # logging.info(f"Last reset: {counters['last_reset']}")
-            
-            # if now.date() != counters['last_reset']:
-            #     with counter_lock:
-            #         try:
-            #             # Save the counts to the database before resetting
-            #             new_record = TomatoCount(
-            #                 date=counters['last_reset'],
-            #                 fresh_count=counters['fresh'],
-            #                 rotten_count=counters['rotten']
-            #             )
-            #             db.session.add(new_record)
-            #             db.session.commit()
-                        
-            #             # Reset the counters
-            #             counters['fresh'] = 0
-            #             counters['rotten'] = 0
-            #             counters['last_reset'] = now.date()
-            #             logging.info("Counters have been reset.")
-            #         except Exception as e:
-            #             db.session.rollback()
-            #             logging.error(f"Failed to reset counters: {e}")
-            # else:
-            #     logging.info("No reset needed.")
-            
-            # # Sleep for a short period to reduce CPU usage
-            # time.sleep(5)
-
 def setup_database():
     with app.app_context():
         upgrade()
@@ -142,8 +112,6 @@ def get_count():
     }
 
     return jsonify(data)
-    # global counters
-    # return jsonify(counters)
 
 @app.route('/history', methods=['GET'])
 def get_history():
