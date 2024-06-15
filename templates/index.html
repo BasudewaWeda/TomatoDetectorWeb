@@ -1,235 +1,235 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tomato Counter</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background: linear-gradient(to right, #ffecd2 0%, #fcb69f 100%);
-            color: #333;
-        }
-        .wrapper {
-          display:flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        .container {
-            text-align: center;
-            background: white;
-            padding: 80px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            max-width: 600px;
-            width: 100%;
-            height: 300px;
-            margin: 10px;
-        }
-
-        .container-single {
-            text-align: center;
-            background: white;
-            padding: 80px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            max-width: 1200px;
-            width: 100%;
-            margin: 10px;
-        }
-
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 50px;
-        }
-
-        .counter {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 30px;
-        }
-
-        .counter div {
-            display: flex;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        .counter img {
-            width: 100px;
-            height: 100px;
-            margin-bottom: 10px;
-        }
-
-        .counter p {
-            font-size: 1.5em;
-            margin: 0;
-        }
-
-        .counter span {
-            font-size: 2em;
-            font-weight: bold;
-        }
-    </style>
-</head>
-
-<body>
-<h1>Tomato Detection Counter</h1>
-<div class="wrapper">
-  <div class="container">
-    <div class="counter">
-        <div>
-            <img src="https://img.icons8.com/color/48/000000/tomato.png" alt="Fresh Tomato">
-            <p>Fresh Tomatoes: <span id="fresh-count">0</span></p>
-        </div>
-        <div>
-            <img src="https://img.icons8.com/color/48/000000/tomato.png" alt="Rotten Tomato"
-                 style="filter: grayscale(100%);">
-            <p>Rotten Tomatoes: <span id="rotten-count">0</span></p>
-        </div>
-    </div>
-</div>
-<div class="container">
-    <canvas id="tomatoChart"></canvas>
-</div>
-</div>
-
-<div class="container-single">
-  <canvas id="historyChart"></canvas>
-</div>
-
-
-
-<script>
-    async function updateCounts() {
-      try {
-        const response = await fetch('/count');
-        const data = await response.json();
-
-        // Update counter display
-        document.getElementById('fresh-count').innerText = data.fresh;
-        document.getElementById('rotten-count').innerText = data.rotten;
-
-        // Create chart data object
-        const chartData = {
-          labels: ['Fresh', 'Rotten'],
-          datasets: [{
-            label: 'Tomato Counts',
-            data: [data.fresh, data.rotten],
-            backgroundColor: ['#ffcccc', '#ff9999'],
-            borderColor: ['#ffcccc', '#ff9999']
-          }]
-        };
-
-        // Get the chart canvas element
-        const ctx = document.getElementById('tomatoChart').getContext('2d');
-
-        // Check if chart instance exists (initial render)
-        if (typeof chart !== 'undefined') {
-          chart.data.datasets[0].data = [data.fresh, data.rotten];  // Update data
-          chart.type = 'bar';  // Change chart type to 'bar'
-          chart.update();  // Call update method to reflect changes
-        } else {
-          // Create the chart for the first time
-          chart = new Chart(ctx, {
-            type: 'bar',  // Set chart type to 'bar' initially
-            data: chartData,
-            options: {
-              responsive: true,
-              plugins: {
-                legend: {
-                  display: true,
-                }
-              }
-            }
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching counts:', error);
+      body {
+        font-family: "Roboto", sans-serif;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background: linear-gradient(to right, #ffecd2 0%, #fcb69f 100%);
+        color: #333;
       }
-    }
+      .wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
 
-    let historyChart; // Declare historyChart in a higher scope
+      .container {
+        text-align: center;
+        background: white;
+        padding: 80px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        max-width: 600px;
+        width: 100%;
+        height: 300px;
+        margin: 10px;
+      }
 
-async function fetchHistory(days = 7) {
-    console.log('test');
+      .container-single {
+        text-align: center;
+        background: white;
+        padding: 80px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        max-width: 1200px;
+        width: 100%;
+        margin: 10px;
+      }
 
-    try {
-        const response = await fetch("/history");
-        const historyData = await response.json();
+      h1 {
+        font-size: 2.5em;
+        margin-bottom: 50px;
+      }
 
-        // Ensure data arrays are at least 7 data points long by padding with nulls or slicing
-        const fillData = (data, length) => {
-            return data.length >= length ? data.slice(-length) : Array(length - data.length).fill(null).concat(data);
-        };
+      .counter {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 30px;
+      }
 
-        const labels = fillData(historyData.dates, days);
-        const freshCounts = fillData(historyData.fresh_counts, days);
-        const rottenCounts = fillData(historyData.rotten_counts, days);
+      .counter div {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+      }
 
-        const historyChartData = {
+      .counter img {
+        width: 100px;
+        height: 100px;
+        margin-bottom: 10px;
+      }
+
+      .counter p {
+        font-size: 1.5em;
+        margin: 0;
+      }
+
+      .counter span {
+        font-size: 2em;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Tomato Detection Counter</h1>
+    <div class="wrapper">
+      <div class="container">
+        <div class="counter">
+          <div>
+            <img src="https://img.icons8.com/color/48/000000/tomato.png" alt="Fresh Tomato" />
+            <p>Fresh Tomatoes: <span id="fresh-count">0</span></p>
+          </div>
+          <div>
+            <img src="https://img.icons8.com/color/48/000000/tomato.png" alt="Rotten Tomato" style="filter: grayscale(100%)" />
+            <p>Rotten Tomatoes: <span id="rotten-count">0</span></p>
+          </div>
+        </div>
+      </div>
+      <div class="container">
+        <canvas id="tomatoChart"></canvas>
+      </div>
+    </div>
+
+    <div class="container-single">
+      <canvas id="historyChart"></canvas>
+    </div>
+
+    <script>
+      async function updateCounts() {
+        try {
+          const response = await fetch("/count");
+          const data = await response.json();
+
+          // Update counter display
+          document.getElementById("fresh-count").innerText = data.fresh;
+          document.getElementById("rotten-count").innerText = data.rotten;
+
+          // Create chart data object
+          const chartData = {
+            labels: ["Fresh", "Rotten"],
+            datasets: [
+              {
+                label: "Tomato Counts",
+                data: [data.fresh, data.rotten],
+                backgroundColor: ["#ffcccc", "#ff9999"],
+                borderColor: ["#ffcccc", "#ff9999"],
+              },
+            ],
+          };
+
+          // Get the chart canvas element
+          const ctx = document.getElementById("tomatoChart").getContext("2d");
+
+          // Check if chart instance exists (initial render)
+          if (typeof chart !== "undefined") {
+            chart.data.datasets[0].data = [data.fresh, data.rotten]; // Update data
+            console.log(data.fresh);
+            console.log(data.rotten);
+            chart.type = "bar"; // Change chart type to 'bar'
+            chart.update(); // Call update method to reflect changes
+          } else {
+            // Create the chart for the first time
+            chart = new Chart(ctx, {
+              type: "bar", // Set chart type to 'bar' initially
+              data: chartData,
+              options: {
+                responsive: true,
+                plugins: {
+                  legend: {
+                    display: true,
+                  },
+                },
+              },
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching counts:", error);
+        }
+      }
+
+      let historyChart; // Declare historyChart in a higher scope
+
+      async function fetchHistory(days = 7) {
+        try {
+          const response = await fetch("/history");
+          const historyData = await response.json();
+
+          // Ensure data arrays are at least 7 data points long by padding with nulls or slicing
+          const fillData = (data, length) => {
+            return data.length >= length
+              ? data.slice(-length)
+              : Array(length - data.length)
+                  .fill(null)
+                  .concat(data);
+          };
+
+          const labels = fillData(historyData.dates, days);
+          const freshCounts = fillData(historyData.fresh_counts, days);
+          const rottenCounts = fillData(historyData.rotten_counts, days);
+
+          const historyChartData = {
             labels: labels,
             datasets: [
-                {
-                    label: 'Fresh Tomatoes',
-                    data: freshCounts,
-                    borderColor: '#ff9999',
-                    fill: false,
-                },
-                {
-                    label: 'Rotten Tomatoes',
-                    data: rottenCounts,
-                    borderColor: '#333',
-                    fill: false,
-                }
-            ]
-        };
+              {
+                label: "Fresh Tomatoes",
+                data: freshCounts,
+                borderColor: "#ff9999",
+                fill: false,
+              },
+              {
+                label: "Rotten Tomatoes",
+                data: rottenCounts,
+                borderColor: "#333",
+                fill: false,
+              },
+            ],
+          };
 
-        const historyCtx = document.getElementById('historyChart').getContext('2d');
+          const historyCtx = document.getElementById("historyChart").getContext("2d");
 
-        // Check if historyChart is already created
-        if (historyChart) {
+          // Check if historyChart is already created
+          if (historyChart) {
             // Update existing chart
             historyChart.data.labels = historyChartData.labels;
             historyChart.data.datasets[0].data = historyChartData.datasets[0].data;
             historyChart.data.datasets[1].data = historyChartData.datasets[1].data;
             historyChart.update(); // Call update method to reflect changes
-        } else {
+          } else {
             // Create the chart for the first time
             historyChart = new Chart(historyCtx, {
-                type: 'line',
-                data: historyChartData,
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: true,
-                        }
-                    }
-                }
+              type: "line",
+              data: historyChartData,
+              options: {
+                responsive: true,
+                plugins: {
+                  legend: {
+                    display: true,
+                  },
+                },
+              },
             });
+          }
+        } catch (error) {
+          console.error("Error fetching history:", error);
         }
-    } catch (error) {
-        console.error('Error fetching history:', error);
-    }
-}
+      }
 
-
-        setInterval(updateCounts, 1000);  // Update every second
-        setInterval(fetchHistory, 1000);  // Update history every second
-        updateCounts();  // Initial call to set the counts immediately
-        fetchHistory();  // Initial call to set the history immediately
-</script>
-</body>
-
+      setInterval(updateCounts, 10000); // Update every second
+      setInterval(fetchHistory, 10000); // Update history every second
+      updateCounts(); // Initial call to set the counts immediately
+      fetchHistory(); // Initial call to set the history immediately
+    </script>
+  </body>
 </html>
