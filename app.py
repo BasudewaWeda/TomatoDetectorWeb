@@ -13,7 +13,11 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 # Configure the database URI
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
+DATABASE_USER = os.environ.get("POSTGRES_USER")
+DATABASE_PASSWORD = os.environ.get("POSTGRES_PASSWORD")
+DATABASE_HOST = os.environ.get("POSTGRES_HOST")
+DATABASE_DATABASE = os.environ.get("POSTGRES_DATABASE")
+app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{DATABASE_USER}:{DATABASE_PASSWORD}@{DATABASE_HOST}/{DATABASE_DATABASE}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize the database
