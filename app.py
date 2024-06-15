@@ -134,14 +134,15 @@ def update_counter():
 
 @app.route('/count', methods=['GET'])
 def get_count():
-    now = datetime.now(local_tz)
-    tomato_record = TomatoCount.query.get(now.date())
+    # now = datetime.now(local_tz)
+    # tomato_record = TomatoCount.query.get(now.date())
 
-    data = {
-        'fresh': tomato_record.fresh_count if tomato_record else 0,
-        'rotten': tomato_record.rotten_count if tomato_record else 0
-    }
-    return jsonify(data)
+    # data = {
+    #     'fresh': tomato_record.fresh_count if tomato_record else 0,
+    #     'rotten': tomato_record.rotten_count if tomato_record else 0
+    # }
+    global counters
+    return jsonify(counters)
 
 @app.route('/history', methods=['GET'])
 def get_history():
