@@ -28,6 +28,8 @@ migrate = Migrate(app, db)
 
 # Define the model for daily counts
 class TomatoCount(db.Model):
+    __tablename__ = 'tomato_count'
+
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, nullable=False, unique=True)
     fresh_count = db.Column(db.Integer, nullable=False)
@@ -110,19 +112,23 @@ def get_count():
 
 @app.route('/history', methods=['GET'])
 def get_history():
-    days = request.args.get('days', default=7, type=int)
-    end_date = datetime.now(local_tz).date()
-    start_date = end_date - timedelta(days=days)
-    
-    records = TomatoCount.query.filter(TomatoCount.date.between(start_date, end_date)).all()
-    
-    history = {
-        'dates': [record.date.strftime('%Y-%m-%d') for record in records],
-        'fresh_counts': [record.fresh_count for record in records],
-        'rotten_counts': [record.rotten_count for record in records]
-    }
-    
-    return jsonify(history)
+    try:
+        days = request.args.get('days', default=7, type=int)
+        end_date = datetime.now(local_tz).date()
+        start_date = end_date - timedelta(days=days)
+        
+        records = TomatoCount.query.filter(TomatoCount.date.between(start_date, end_date)).all()
+        
+        history = {
+            'dates': [record.date.strftime('%Y-%m-%d') for record in records],
+            'fresh_counts': [record.fresh_count for record in records],
+            'rotten_counts': [record.rotten_count for record in records]
+        }
+        
+        return jsonify(history)
+    except Exception as e:
+        logging.error(f"Error occurred in /history route: {e}")
+        return jsonify({"error": "Internal Server Error"}), 500
 
 if __name__ == '__main__':
     setup_database()
