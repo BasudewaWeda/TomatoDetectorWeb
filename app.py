@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template
-from flask_migrate import Migrate
+from flask_migrate import Migrate, upgrade
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 import threading
@@ -82,10 +82,9 @@ def reset_counters():
             # Sleep for a short period to reduce CPU usage
             time.sleep(5)
 
-@app.before_first_request
 def setup_database():
-    from flask_migrate import upgrade
-    upgrade()
+    with app.app_context():
+        upgrade()
 
 @app.route('/')
 def index():
@@ -126,6 +125,7 @@ def get_history():
     return jsonify(history)
 
 if __name__ == '__main__':
+    setup_database()
     # Ensure the database and table are created
     with app.app_context():
         db.create_all()
@@ -135,4 +135,4 @@ if __name__ == '__main__':
     reset_thread.start()
 
     # Run the Flask application
-    app.run(host='0.0.0.0', port=5000)
+    app.run()
