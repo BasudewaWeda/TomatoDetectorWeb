@@ -59,7 +59,7 @@ def reset_counters():
             try:
                 # Retrieve the existing record (if any)
                 # tomato_record = TomatoCount.query.get(now.date())
-                tomato_record = db.session.execute(db.select(TomatoCount).filter_by(date=now.date())).scalar_one()
+                tomato_record = db.session.execute(db.select(TomatoCount).filter_by(date=now.date())).first()
 
                 # Update counts regardless of day change
                 if tomato_record:
