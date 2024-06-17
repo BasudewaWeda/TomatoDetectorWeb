@@ -129,8 +129,8 @@ def update_counter():
                     rotten_count += 1
     
     response_data = {
-        'fresh_count': fresh_count,
-        'rotten_count': rotten_count
+        'fresh': fresh_count,
+        'rotten': rotten_count
     }
 
     reset_counters()
