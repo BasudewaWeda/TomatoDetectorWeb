@@ -7,12 +7,16 @@ import time
 import pytz
 import logging
 import os
+from ultralytics import YOLO
+import cv2
+import numpy as np
 
 app = Flask(__name__)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
+model = YOLO('best.pt')
 
 # Configure the database URI
 DATABASE_USER = os.environ.get("POSTGRES_USER")
@@ -87,8 +91,8 @@ def setup_database():
 def index():
     return render_template('index.html')
 
-@app.route('/update', methods=['POST'])
-def update_counter():
+@app.route('/update_text', methods=['POST'])
+def update_counter_text():
     global counters
     detection_result = request.json  # {'type': 'fresh'} or {'type': 'rotten'}
     
@@ -100,6 +104,39 @@ def update_counter():
     reset_counters()
 
     return jsonify(success=True)
+
+@app.route('/update', methods=['POST'])
+def update_counter():
+    global counters
+    if 'image' not in request.files:
+        return 'No image file uploaded!', 400  # Bad request response
+
+    image = request.files['image']
+    image_bytes = image.read()
+    opencv_image = cv2.imdecode(np.fromstring(image_bytes, np.uint8), cv2.IMREAD_COLOR)
+    results = model(opencv_image)
+    fresh_count = 0
+    rotten_count = 0
+
+    for result in results:
+        for box in result.boxes:
+            if box.conf >= 0.4:
+                if box.cls[0] == 0 or box.cls[0] == 2:
+                    counters['fresh'] += 1
+                    fresh_count += 1
+                else:
+                    counters['rotten'] += 1
+                    rotten_count += 1
+    
+    response_data = {
+        'fresh_count': fresh_count,
+        'rotten_count': rotten_count
+    }
+
+    reset_counters()
+
+    return jsonify(response_data), 200
+
 
 @app.route('/count', methods=['GET'])
 def get_count():
