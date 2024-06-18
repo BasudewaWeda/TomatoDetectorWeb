@@ -62,8 +62,8 @@ def reset_counters():
         tomato_record = TomatoCount.query.filter_by(date=now.date()).first()
         # Update counts regardless of day change
         if tomato_record:
-            tomato_record.fresh_count = counters['fresh']
-            tomato_record.rotten_count = counters['rotten']
+            tomato_record.fresh_count += counters['fresh']
+            tomato_record.rotten_count += counters['rotten']
         else:
             # Create a new record if none exists
             counters = {'fresh': 0, 'rotten': 0, 'last_reset': now.date()}
