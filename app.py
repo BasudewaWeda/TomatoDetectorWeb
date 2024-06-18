@@ -64,6 +64,8 @@ def reset_counters():
         if tomato_record:
             tomato_record.fresh_count += counters['fresh']
             tomato_record.rotten_count += counters['rotten']
+            counters['fresh'] = 0
+            counters['rotten'] = 0
         else:
             # Create a new record if none exists
             counters = {'fresh': 0, 'rotten': 0, 'last_reset': now.date()}
