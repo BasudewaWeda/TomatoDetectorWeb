@@ -111,6 +111,7 @@ def update_counter():
 
     fresh_count = 0
     rotten_count = 0
+    class_response = 0
 
     image = request.files['image']
     files = {'image': image}
@@ -119,15 +120,19 @@ def update_counter():
 
     if response.status_code == 200:
         response_json = response.json()
-        fresh_count += response_json.get('fresh')
-        rotten_count += response_json.get('rotten')
+        fresh_count = response_json.get('fresh')
+        rotten_count = response_json.get('rotten')
+
+        if fresh_count >= rotten_count:
+            class_response = 1 # 1 = fresh
+        else:
+            class_response = 0 # 0 = rotten
 
         counters['fresh'] += response_json.get('fresh')
         counters['rotten'] += response_json.get('rotten')
 
         response_data = {
-            'fresh': fresh_count,
-            'rotten': rotten_count
+            'class': class_response
         }
 
         reset_counters()
