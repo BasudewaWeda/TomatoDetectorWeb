@@ -7,16 +7,12 @@ import time
 import pytz
 import logging
 import os
-from ultralytics import YOLO
-import cv2
-import numpy as np
+import requests
 
 app = Flask(__name__)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-
-model = YOLO('best.pt')
 
 # Configure the database URI
 DATABASE_USER = os.environ.get("POSTGRES_USER")
@@ -111,31 +107,32 @@ def update_counter():
     if 'image' not in request.files:
         return 'No image file uploaded!', 400  # Bad request response
 
-    image = request.files['image']
-    image_bytes = image.read()
-    opencv_image = cv2.imdecode(np.fromstring(image_bytes, np.uint8), cv2.IMREAD_COLOR)
-    results = model(opencv_image)
     fresh_count = 0
     rotten_count = 0
 
-    for result in results:
-        for box in result.boxes:
-            if box.conf >= 0.4:
-                if box.cls[0] == 0 or box.cls[0] == 2:
-                    counters['fresh'] += 1
-                    fresh_count += 1
-                else:
-                    counters['rotten'] += 1
-                    rotten_count += 1
-    
-    response_data = {
-        'fresh': fresh_count,
-        'rotten': rotten_count
-    }
+    image = request.files['image']
+    files = {'image': image}
 
-    reset_counters()
+    response = requests.post('https://basudewaweda-tomatodetectortest.hf.space/predict', files=files)
 
-    return jsonify(response_data), 200
+    if response.status_code == 200:
+        response_json = response.json()
+        fresh_count += response_json.get('fresh')
+        rotten_count += response_json.get('rotten')
+
+        counters['fresh'] += response_json.get('fresh')
+        counters['rotten'] += response_json.get('rotten')
+
+        response_data = {
+            'fresh': fresh_count,
+            'rotten': rotten_count
+        }
+
+        reset_counters()
+
+        return jsonify(response_data), 200
+    else:
+        return "Failed to do inference", 404
 
 
 @app.route('/count', methods=['GET'])
