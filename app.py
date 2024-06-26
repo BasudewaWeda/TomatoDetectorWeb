@@ -105,42 +105,51 @@ def update_counter_text():
 
 @app.route('/update', methods=['POST'])
 def update_counter():
-    global counters
-    if 'image' not in request.files:
-        return 'No image file uploaded!', 400  # Bad request response
+    # global counters
+    # if 'image' not in request.files:
+    #     return 'No image file uploaded!', 400  # Bad request response
 
-    fresh_count = 0
-    rotten_count = 0
-    class_response = 0
+    # fresh_count = 0
+    # rotten_count = 0
+    # class_response = 0
 
-    image = request.files['image']
-    files = {'image': image}
+    # image = request.files['image']
+    # files = {'image': image}
 
-    response = requests.post('https://basudewaweda-tomatodetectortest.hf.space/predict', files=files)
+    # response = requests.post('https://basudewaweda-tomatodetectortest.hf.space/predict', files=files)
 
-    if response.status_code == 200:
-        response_json = response.json()
-        fresh_count = response_json.get('fresh')
-        rotten_count = response_json.get('rotten')
+    # if response.status_code == 200:
+    #     response_json = response.json()
+    #     fresh_count = response_json.get('fresh')
+    #     rotten_count = response_json.get('rotten')
 
-        if fresh_count >= rotten_count:
-            class_response = 1 # 1 = fresh
-        else:
-            class_response = 0 # 0 = rotten
+    #     if fresh_count >= rotten_count:
+    #         class_response = 1 # 1 = fresh
+    #     else:
+    #         class_response = 0 # 0 = rotten
 
-        counters['fresh'] += response_json.get('fresh')
-        counters['rotten'] += response_json.get('rotten')
+    #     counters['fresh'] += response_json.get('fresh')
+    #     counters['rotten'] += response_json.get('rotten')
 
-        response_data = {
-            'class': class_response
-        }
+    #     response_data = {
+    #         'class': class_response
+    #     }
 
-        reset_counters()
+    #     reset_counters()
 
-        return jsonify(response_data), 200
-    else:
-        return "Failed to do inference", 404
+    #     return jsonify(response_data), 200
+    # else:
+    #     return "Failed to do inference", 404
+    
+    detection_result = request.json()
 
+    fresh_count = detection_result.get('fresh')
+    rotten_count = detection_result.get('rotten')
+
+    counters['fresh'] += fresh_count
+    counters['rotten'] += rotten_count
+
+    reset_counters()
 
 @app.route('/count', methods=['GET'])
 def get_count():
