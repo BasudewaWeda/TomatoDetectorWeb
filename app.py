@@ -141,15 +141,20 @@ def update_counter():
     # else:
     #     return "Failed to do inference", 404
     
-    detection_result = request.get_json()
+    try:
+        detection_result = request.get_json()
 
-    fresh_count = detection_result.get('fresh')
-    rotten_count = detection_result.get('rotten')
+        fresh_count = detection_result.get('fresh')
+        rotten_count = detection_result.get('rotten')
 
-    counters['fresh'] += fresh_count
-    counters['rotten'] += rotten_count
+        counters['fresh'] += fresh_count
+        counters['rotten'] += rotten_count
 
-    reset_counters()
+        reset_counters()
+
+        return "Successfully processed", 200
+    except:
+        return "Something went wrong", 404
 
 @app.route('/count', methods=['GET'])
 def get_count():
