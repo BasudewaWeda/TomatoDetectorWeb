@@ -141,7 +141,7 @@ def update_counter():
     # else:
     #     return "Failed to do inference", 404
     
-    detection_result = request.json()
+    detection_result = request.get_json()
 
     fresh_count = detection_result.get('fresh')
     rotten_count = detection_result.get('rotten')
