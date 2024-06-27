@@ -79,6 +79,14 @@
         font-size: 2em;
         font-weight: bold;
       }
+
+      .image-display {
+        background: white;
+        padding: 10px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        text-align: center;
+      }
     </style>
   </head>
 
@@ -106,7 +114,26 @@
       <canvas id="historyChart"></canvas>
     </div>
 
+    <div class="image-display">
+      <h1>Image Display</h1>
+      <img id="displayedImage" alt="Image will be displayed here" width="150" height="150" />
+    </div>
+
     <script>
+      async function fetchImage() {
+        try {
+          const response = await fetch("/get-img");
+          if (response.ok) {
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            document.getElementById("displayedImage").src = url;
+          } else {
+            console.log("No image available");
+          }
+        } catch (error) {
+          console.error("Error fetching the image:", error);
+        }
+      }
       async function updateCounts() {
         try {
           const response = await fetch("/count");
@@ -225,9 +252,13 @@
       }
 
       setInterval(updateCounts, 1000); // Update every second
-      setInterval(fetchHistory, 1000); // Update history every second
       updateCounts(); // Initial call to set the counts immediately
+
+      setInterval(fetchHistory, 1000); // Update history every second
       fetchHistory(); // Initial call to set the history immediately
+
+      setInterval(fetchImage, 1000);
+      fetchImage();
     </script>
   </body>
 </html>

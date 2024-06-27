@@ -1,7 +1,8 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_file
 from flask_migrate import Migrate, upgrade
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
+from werkzeug.utils import secure_filename
 import threading
 import time
 import pytz
@@ -46,6 +47,8 @@ counters = {
     'rotten': 0,
     'last_reset': time_init.date() # - timedelta(days=1)
 }
+
+current_image = None
 
 # Lock for thread-safe counter updates
 # counter_lock = threading.Lock()
@@ -105,7 +108,7 @@ def update_counter_text():
 
 @app.route('/update', methods=['POST'])
 def update_counter():
-    # global counters
+    global counters
     # if 'image' not in request.files:
     #     return 'No image file uploaded!', 400  # Bad request response
 
@@ -155,6 +158,87 @@ def update_counter():
         return "Successfully processed", 200
     except:
         return "Something went wrong", 404
+    
+# @app.route('/upload-img', methods=['POST'])
+# def upload_img():
+#     global current_image
+
+#     if 'image' not in request.files:
+#         return 'No image file uploaded!', 400  # Bad request response
+
+#     current_image = request.files['image']
+
+#     return 'Successfully uploaded image', 200
+
+# @app.route('/get-img', methods=['GET'])
+# def get_img():
+#     global current_image
+
+#     if not current_image:
+#         return 'No image available', 200
+    
+#     # image_data = {
+#     #     'image': current_image
+#     # }
+
+#     # return jsonify(image_data), 200
+#     current_image.seek(0)
+#     return send_file(current_image, mimetype=current_image.content_type)
+
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
+
+# Ensure upload folder exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/upload-img', methods=['POST'])
+def upload_img():
+    global current_image
+    
+    # Check if image file is present in the request
+    if 'image' not in request.files:
+        return 'No image file uploaded!', 400  # Bad request response
+
+    file = request.files['image']
+
+    # Validate file extension
+    if file.filename == '' or not allowed_file(file.filename):
+        return 'Invalid file format', 400
+
+    # Save the uploaded file
+    filename = secure_filename(file.filename)
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    file.save(file_path)
+
+    # Delete existing image if it exists
+    if current_image:
+        try:
+            os.remove(os.path.join(UPLOAD_FOLDER, current_image))
+        except FileNotFoundError:
+            pass
+
+    # Update current_image variable with the new filename
+    current_image = filename
+
+    return 'Successfully uploaded image', 200
+
+@app.route('/get-img', methods=['GET'])
+def get_img():
+    global current_image
+
+    if not current_image:
+        return 'No image available', 404
+
+    try:
+        return send_file(
+            os.path.join(UPLOAD_FOLDER, current_image),
+            mimetype='image/jpeg'  # Adjust mimetype based on your image type
+        )
+    except Exception as e:
+        return str(e), 500
 
 @app.route('/count', methods=['GET'])
 def get_count():
