@@ -3,6 +3,8 @@ from flask_migrate import Migrate, upgrade
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
+import tempfile
+import mimetypes
 import threading
 import time
 import pytz
@@ -185,58 +187,103 @@ def update_counter():
 #     current_image.seek(0)
 #     return send_file(current_image, mimetype=current_image.content_type)
 
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
+# UPLOAD_FOLDER = 'uploads'
+# ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
 
-# Ensure upload folder exists
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# # Ensure upload folder exists
+# os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# def allowed_file(filename):
+#     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# @app.route('/upload-img', methods=['POST'])
+# def upload_img():
+#     global current_image
+    
+#     # Check if image file is present in the request
+#     if 'image' not in request.files:
+#         return 'No image file uploaded!', 400  # Bad request response
+
+#     file = request.files['image']
+
+#     # Validate file extension
+#     if file.filename == '' or not allowed_file(file.filename):
+#         return 'Invalid file format', 400
+
+#     # Save the uploaded file
+#     filename = secure_filename(file.filename)
+#     file_path = os.path.join(UPLOAD_FOLDER, filename)
+#     file.save(file_path)
+
+#     # Delete existing image if it exists
+#     if current_image:
+#         try:
+#             os.remove(os.path.join(UPLOAD_FOLDER, current_image))
+#         except FileNotFoundError:
+#             pass
+
+#     # Update current_image variable with the new filename
+#     current_image = filename
+
+#     return 'Successfully uploaded image', 200
+
+# @app.route('/get-img', methods=['GET'])
+# def get_img():
+#     global current_image
+
+#     if not current_image:
+#         return 'No image available', 404
+
+#     try:
+#         return send_file(
+#             os.path.join(UPLOAD_FOLDER, current_image),
+#             mimetype='image/jpeg'  # Adjust mimetype based on your image type
+#         )
+#     except Exception as e:
+#         return str(e), 500
+
+tempdir = tempfile.TemporaryDirectory()
+
+# Allowed file extensions
+ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/upload-img', methods=['POST'])
 def upload_img():
-    global current_image
-    
-    # Check if image file is present in the request
     if 'image' not in request.files:
-        return 'No image file uploaded!', 400  # Bad request response
+        return 'No image file uploaded!', 400
 
     file = request.files['image']
 
-    # Validate file extension
     if file.filename == '' or not allowed_file(file.filename):
         return 'Invalid file format', 400
 
-    # Save the uploaded file
+    # Save the uploaded file to a temporary directory
     filename = secure_filename(file.filename)
-    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    file_path = os.path.join(tempdir.name, filename)
     file.save(file_path)
-
-    # Delete existing image if it exists
-    if current_image:
-        try:
-            os.remove(os.path.join(UPLOAD_FOLDER, current_image))
-        except FileNotFoundError:
-            pass
-
-    # Update current_image variable with the new filename
-    current_image = filename
 
     return 'Successfully uploaded image', 200
 
 @app.route('/get-img', methods=['GET'])
 def get_img():
-    global current_image
-
-    if not current_image:
-        return 'No image available', 404
-
     try:
-        return send_file(
-            os.path.join(UPLOAD_FOLDER, current_image),
-            mimetype='image/jpeg'  # Adjust mimetype based on your image type
-        )
+        # List files in the temporary directory
+        files = [f for f in os.listdir(tempdir.name) if os.path.isfile(os.path.join(tempdir.name, f))]
+        
+        if not files:
+            return 'No image available', 404
+
+        # Find the most recently uploaded file
+        latest_file = max(files, key=lambda f: os.path.getmtime(os.path.join(tempdir.name, f)))
+        file_path = os.path.join(tempdir.name, latest_file)
+
+        # Determine the MIME type of the file
+        mime_type, _ = mimetypes.guess_type(file_path)
+
+        return send_file(file_path, mimetype=mime_type)
     except Exception as e:
         return str(e), 500
 
